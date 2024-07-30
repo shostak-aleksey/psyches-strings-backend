@@ -12,78 +12,54 @@ const Basket = sequelize.define("basket", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 });
 
-const BasketDevice = sequelize.define("basket_device", {
+const BasketCourse = sequelize.define("basket_course", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 });
 
-const Device = sequelize.define("device", {
+const BasketVideo = sequelize.define("basket_video", {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+});
+
+const Course = sequelize.define("course", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, unique: true, allowNull: false },
   price: { type: DataTypes.INTEGER, allowNull: false },
-  rating: { type: DataTypes.INTEGER, defaultValue: 0 },
+  description: { type: DataTypes.TEXT, allowNull: false },
   image: { type: DataTypes.STRING, allowNull: false },
 });
 
-const Type = sequelize.define("type", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  name: { type: DataTypes.STRING, unique: true, allowNull: false },
-});
-
-const Brand = sequelize.define("brand", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  name: { type: DataTypes.STRING, unique: true, allowNull: false },
-});
-
-const Rating = sequelize.define("rating", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  rate: { type: DataTypes.INTEGER, allowNull: false },
-});
-
-const DeviceInfo = sequelize.define("device_info", {
+const Video = sequelize.define("video", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: { type: DataTypes.STRING, allowNull: false },
-  description: { type: DataTypes.STRING, allowNull: false },
-});
-
-const TypeBrand = sequelize.define("type_brand", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  description: { type: DataTypes.TEXT, allowNull: false },
+  price: { type: DataTypes.INTEGER, allowNull: false },
+  url: { type: DataTypes.STRING, allowNull: false },
+  courseId: { type: DataTypes.INTEGER, allowNull: false },
 });
 
 User.hasOne(Basket);
 Basket.belongsTo(User);
 
-User.hasMany(Rating);
-Rating.belongsTo(User);
+Basket.hasMany(BasketCourse);
+BasketCourse.belongsTo(Basket);
 
-Basket.hasMany(BasketDevice);
-BasketDevice.belongsTo(Basket);
+Basket.hasMany(BasketVideo);
+BasketVideo.belongsTo(Basket);
 
-Type.hasMany(Device);
-Device.belongsTo(Type);
+Course.hasMany(Video);
+Video.belongsTo(Course);
 
-Brand.hasMany(Device);
-Device.belongsTo(Brand);
+Course.hasMany(BasketCourse);
+BasketCourse.belongsTo(Course);
 
-Device.hasMany(Rating);
-Rating.belongsTo(Device);
-
-Device.hasMany(BasketDevice);
-BasketDevice.belongsTo(Device);
-
-Device.hasMany(DeviceInfo, { as: "info" });
-DeviceInfo.belongsTo(Device);
-
-Type.belongsToMany(Brand, { through: TypeBrand });
-Brand.belongsToMany(Type, { through: TypeBrand });
+Video.hasMany(BasketVideo);
+BasketVideo.belongsTo(Video);
 
 module.exports = {
   User,
   Basket,
-  BasketDevice,
-  Device,
-  Type,
-  Brand,
-  Rating,
-  DeviceInfo,
-  TypeBrand,
+  BasketCourse,
+  BasketVideo,
+  Course,
+  Video,
 };

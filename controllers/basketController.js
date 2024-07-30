@@ -1,57 +1,121 @@
-const { Basket, BasketDevice, Device } = require("../modules/modules");
+const {
+  Basket,
+  BasketCourse,
+  BasketVideo,
+  Course,
+  Video,
+} = require("../modules/modules");
 const ApiError = require("../error/ApiError");
 
 class BasketController {
-  async addDevice(req, res, next) {
-    const { deviceId } = req.body;
-    const userId = req.user.id;
+  async addCourse(req, res, next) {
+    try {
+      const { courseId } = req.body;
+      const userId = req.user.id;
 
-    const basket = await Basket.findOne({ where: { userId } });
-    if (!basket) {
-      return next(ApiError.internal("Корзина не найдена"));
+      const basket = await Basket.findOne({ where: { userId } });
+      if (!basket) {
+        return next(ApiError.internal("Корзина не найдена"));
+      }
+
+      const basketCourse = await BasketCourse.create({
+        basketId: basket.id,
+        courseId,
+      });
+
+      return res.json(basketCourse);
+    } catch (err) {
+      next(ApiError.badRequest(err.message));
     }
+  }
 
-    const basketDevice = await BasketDevice.create({
-      basketId: basket.id,
-      deviceId,
-    });
-    return res.json(basketDevice);
+  async addVideo(req, res, next) {
+    try {
+      const { videoId } = req.body;
+      const userId = req.user.id;
+
+      const basket = await Basket.findOne({ where: { userId } });
+      if (!basket) {
+        return next(ApiError.internal("Корзина не найдена"));
+      }
+
+      const basketVideo = await BasketVideo.create({
+        basketId: basket.id,
+        videoId,
+      });
+
+      return res.json(basketVideo);
+    } catch (err) {
+      next(ApiError.badRequest(err.message));
+    }
   }
 
   async getBasket(req, res, next) {
-    const userId = req.user.id;
+    try {
+      const userId = req.user.id;
 
-    const basket = await Basket.findOne({
-      where: { userId },
-      include: [{ model: BasketDevice, include: [Device] }],
-    });
+      const basket = await Basket.findOne({
+        where: { userId },
+        include: [
+          { model: BasketCourse, include: [Course] },
+          { model: BasketVideo, include: [Video] },
+        ],
+      });
 
-    if (!basket) {
-      return next(ApiError.internal("Корзина не найдена"));
+      return res.json(basket);
+    } catch (err) {
+      next(ApiError.badRequest(err.message));
     }
-
-    return res.json(basket);
   }
 
-  async removeDevice(req, res, next) {
-    const { deviceId } = req.body;
-    const userId = req.user.id;
+  async removeCourse(req, res, next) {
+    try {
+      const { courseId } = req.body;
+      const userId = req.user.id;
 
-    const basket = await Basket.findOne({ where: { userId } });
-    if (!basket) {
-      return next(ApiError.internal("Корзина не найдена"));
+      const basket = await Basket.findOne({ where: { userId } });
+      if (!basket) {
+        return next(ApiError.internal("Корзина не найдена"));
+      }
+
+      const basketCourse = await BasketCourse.findOne({
+        where: { basketId: basket.id, courseId },
+      });
+
+      if (!basketCourse) {
+        return next(ApiError.internal("Курс не найден в корзине"));
+      }
+
+      await basketCourse.destroy();
+      return res.json({ message: "Курс удален из корзины" });
+    } catch (err) {
+      next(ApiError.badRequest(err.message));
     }
+  }
 
-    const basketDevice = await BasketDevice.findOne({
-      where: { basketId: basket.id, deviceId },
-    });
+  async removeVideo(req, res, next) {
+    try {
+      const { videoId } = req.body;
+      const userId = req.user.id;
 
-    if (!basketDevice) {
-      return next(ApiError.internal("Устройство не найдено в корзине"));
+      const basket = await Basket.findOne({ where: { userId } });
+      if (!basket) {
+        return next(ApiError.internal("Корзина не найдена"));
+      }
+
+      const basketVideo = await BasketVideo.findOne({
+        where: { basketId: basket.id, videoId },
+      });
+
+      if (!basketVideo) {
+        return next(ApiError.internal("Видео не найдено в корзине"));
+      }
+
+      await basketVideo.destroy();
+      return res.json({ message: "Видео удалено из корзины" });
+    } catch (err) {
+      next(ApiError.badRequest(err.message));
     }
-
-    await basketDevice.destroy();
-    return res.json({ message: "Устройство удалено из корзины" });
   }
 }
 
