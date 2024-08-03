@@ -8,8 +8,9 @@ const generateJwt = (id, email, role) => {
     expiresIn: "1h",
   });
 };
+
 class UserController {
-  async registration(req, res) {
+  async registration(req, res, next) {
     const { email, password, role } = req.body;
 
     if (!email || !password) {
@@ -27,6 +28,7 @@ class UserController {
     const token = generateJwt(user.id, user.email, user.role);
     return res.json({ token });
   }
+
   async login(req, res, next) {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
@@ -40,9 +42,65 @@ class UserController {
     const token = generateJwt(user.id, user.email, user.role);
     return res.json({ token });
   }
+
   async check(req, res) {
     const token = generateJwt(req.user.id, req.user.email, req.user.role);
     return res.json({ token });
+  }
+
+  async getAll(req, res, next) {
+    try {
+      const users = await User.findAll();
+      return res.json(users);
+    } catch (e) {
+      return next(
+        ApiError.internal("Ошибка при получении списка пользователей")
+      );
+    }
+  }
+
+  async getOne(req, res, next) {
+    const { id } = req.params;
+    try {
+      const user = await User.findOne({ where: { id } });
+      if (!user) {
+        return next(ApiError.notFound("Пользователь не найден"));
+      }
+      return res.json(user);
+    } catch (e) {
+      return next(ApiError.internal("Ошибка при получении пользователя"));
+    }
+  }
+
+  async update(req, res, next) {
+    const { id } = req.params;
+    const { email, role } = req.body;
+    try {
+      const user = await User.findOne({ where: { id } });
+      if (!user) {
+        return next(ApiError.notFound("Пользователь не найден"));
+      }
+      user.email = email || user.email;
+      user.role = role || user.role;
+      await user.save();
+      return res.json(user);
+    } catch (e) {
+      return next(ApiError.internal("Ошибка при обновлении пользователя"));
+    }
+  }
+
+  async delete(req, res, next) {
+    const { id } = req.params;
+    try {
+      const user = await User.findOne({ where: { id } });
+      if (!user) {
+        return next(ApiError.notFound("Пользователь не найден"));
+      }
+      await user.destroy();
+      return res.json({ message: "Пользователь удален" });
+    } catch (e) {
+      return next(ApiError.internal("Ошибка при удалении пользователя"));
+    }
   }
 }
 
