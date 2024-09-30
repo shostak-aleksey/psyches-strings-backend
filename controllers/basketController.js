@@ -10,6 +10,9 @@ const ApiError = require("../error/ApiError");
 class BasketController {
   async addCourse(req, res, next) {
     try {
+      console.log("Request body:", req.body); // Логирование тела запроса
+      console.log("Request user:", req.user); // Логирование пользователя
+
       const { courseId } = req.body;
       const userId = req.user.id;
 
@@ -25,12 +28,16 @@ class BasketController {
 
       return res.json(basketCourse);
     } catch (err) {
+      console.error("Error in addCourse:", err); // Логирование ошибки
       next(ApiError.badRequest(err.message));
     }
   }
 
   async addVideo(req, res, next) {
     try {
+      console.log("Request body:", req.body); // Логирование тела запроса
+      console.log("Request user:", req.user); // Логирование пользователя
+
       const { videoId } = req.body;
       const userId = req.user.id;
 
@@ -46,12 +53,15 @@ class BasketController {
 
       return res.json(basketVideo);
     } catch (err) {
+      console.error("Error in addVideo:", err); // Логирование ошибки
       next(ApiError.badRequest(err.message));
     }
   }
 
   async getBasket(req, res, next) {
     try {
+      console.log("Request user:", req.user); // Логирование пользователя
+
       const userId = req.user.id;
 
       const basket = await Basket.findOne({
@@ -64,12 +74,16 @@ class BasketController {
 
       return res.json(basket);
     } catch (err) {
+      console.error("Error in getBasket:", err); // Логирование ошибки
       next(ApiError.badRequest(err.message));
     }
   }
 
   async removeCourse(req, res, next) {
     try {
+      console.log("Request body:", req.body); // Логирование тела запроса
+      console.log("Request user:", req.user); // Логирование пользователя
+
       const { courseId } = req.body;
       const userId = req.user.id;
 
@@ -89,12 +103,16 @@ class BasketController {
       await basketCourse.destroy();
       return res.json({ message: "Курс удален из корзины" });
     } catch (err) {
+      console.error("Error in removeCourse:", err); // Логирование ошибки
       next(ApiError.badRequest(err.message));
     }
   }
 
   async removeVideo(req, res, next) {
     try {
+      console.log("Request body:", req.body); // Логирование тела запроса
+      console.log("Request user:", req.user); // Логирование пользователя
+
       const { videoId } = req.body;
       const userId = req.user.id;
 
@@ -114,6 +132,7 @@ class BasketController {
       await basketVideo.destroy();
       return res.json({ message: "Видео удалено из корзины" });
     } catch (err) {
+      console.error("Error in removeVideo:", err); // Логирование ошибки
       next(ApiError.badRequest(err.message));
     }
   }

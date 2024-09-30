@@ -13,7 +13,7 @@ const checkRole = require("../middleware/checkRoleMiddleware");
  *         - title
  *         - description
  *         - price
- *         - url
+ *         - video
  *         - courseId
  *       properties:
  *         id:
@@ -28,7 +28,7 @@ const checkRole = require("../middleware/checkRoleMiddleware");
  *         price:
  *           type: integer
  *           description: The price of the video
- *         url:
+ *         video:
  *           type: string
  *           description: The URL of the video
  *         courseId:
@@ -39,7 +39,7 @@ const checkRole = require("../middleware/checkRoleMiddleware");
  *         title: "New Video"
  *         description: "Video description"
  *         price: 100
- *         url: "video.mp4"
+ *         video: "video.mp4"
  *         courseId: 1
  */
 

@@ -1,3 +1,5 @@
+const uuid = require("uuid");
+const path = require("path");
 const { Video } = require("../modules/modules");
 const ApiError = require("../error/ApiError");
 
@@ -5,7 +7,12 @@ class VideoController {
   async create(req, res, next) {
     try {
       let { title, description, price, courseId } = req.body;
+      console.log("Request files:", req.files); // Для отладки
       const { video } = req.files;
+
+      if (!video) {
+        return next(ApiError.badRequest("Video file is missing"));
+      }
 
       let videoFilename = uuid.v4() + ".mp4";
       video.mv(path.resolve(__dirname, "..", "static", videoFilename));
@@ -47,6 +54,7 @@ class VideoController {
     try {
       const { id } = req.params;
       let { title, description, price, courseId } = req.body;
+      console.log("Request files:", req.files); // Для отладки
       const { video } = req.files;
 
       const videoEntry = await Video.findOne({ where: { id } });

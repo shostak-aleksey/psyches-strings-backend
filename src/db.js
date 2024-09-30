@@ -8,5 +8,6 @@ module.exports = new Sequelize(
     dialect: "postgres",
     host: process.env.BD_HOST,
     port: process.env.BD_PORT, // Порт должен быть числом
+    logging: false,
   }
 );

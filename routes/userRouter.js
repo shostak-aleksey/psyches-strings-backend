@@ -57,9 +57,14 @@ const checkRole = require("../middleware/checkRoleMiddleware");
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
- *       500:
- *         description: Some server error
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       400:
+ *         description: Bad request
  */
 router.post("/registration", userController.registration);
 
@@ -74,46 +79,118 @@ router.post("/registration", userController.registration);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
  *     responses:
  *       200:
  *         description: The user was successfully logged in
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
- *       500:
- *         description: Some server error
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       400:
+ *         description: Bad request
  */
 router.post("/login", userController.login);
 
 /**
  * @swagger
- * /user/check:
- *   get:
- *     summary: Check user authentication
+ * /user/refresh:
+ *   post:
+ *     summary: Refresh access token
  *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
  *     responses:
  *       200:
- *         description: The user is authenticated
+ *         description: The access token was successfully refreshed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       400:
+ *         description: Bad request
+ */
+router.post("/refresh", userController.refresh);
+
+/**
+ * @swagger
+ * /user/logout:
+ *   post:
+ *     summary: Logout a user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The user was successfully logged out
+ *       400:
+ *         description: Bad request
+ */
+router.post("/logout", userController.logout);
+
+/**
+ * @swagger
+ * /user/{id}:
+ *   get:
+ *     summary: Get a user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The user ID
+ *     responses:
+ *       200:
+ *         description: The user data
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
- *       500:
- *         description: Some server error
+ *       404:
+ *         description: User not found
  */
-router.get("/check", userController.check);
+router.get("/:id", checkRole("ADMIN"), userController.getOne);
 
 /**
  * @swagger
  * /user:
  *   get:
- *     summary: Returns the list of all the users
+ *     summary: Get all users
  *     tags: [Users]
  *     responses:
  *       200:
- *         description: The list of the users
+ *         description: List of all users
  *         content:
  *           application/json:
  *             schema:
@@ -121,38 +198,13 @@ router.get("/check", userController.check);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.get("/", checkRole("ADMIN"), userController.getAll);
-
-/**
- * @swagger
- * /user/{id}:
- *   get:
- *     summary: Get the user by id
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: The user id
- *     responses:
- *       200:
- *         description: The user description by id
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       404:
- *         description: The user was not found
- */
-router.get("/:id", checkRole("ADMIN"), userController.getOne);
+router.get("/", userController.getAll);
 
 /**
  * @swagger
  * /user/{id}:
  *   put:
- *     summary: Update the user by the id
+ *     summary: Update a user by ID
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -160,32 +212,35 @@ router.get("/:id", checkRole("ADMIN"), userController.getOne);
  *         schema:
  *           type: integer
  *         required: true
- *         description: The user id
+ *         description: The user ID
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               role:
+ *                 type: string
  *     responses:
  *       200:
- *         description: The user was updated
+ *         description: The user was successfully updated
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
  *       404:
- *         description: The user was not found
- *       500:
- *         description: Some error happened
+ *         description: User not found
  */
-router.put("/:id", checkRole("ADMIN"), userController.update);
+router.put("/:id", userController.update);
 
 /**
  * @swagger
  * /user/{id}:
  *   delete:
- *     summary: Remove the user by id
+ *     summary: Delete a user by ID
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -193,13 +248,13 @@ router.put("/:id", checkRole("ADMIN"), userController.update);
  *         schema:
  *           type: integer
  *         required: true
- *         description: The user id
+ *         description: The user ID
  *     responses:
  *       200:
- *         description: The user was deleted
+ *         description: The user was successfully deleted
  *       404:
- *         description: The user was not found
+ *         description: User not found
  */
-router.delete("/:id", checkRole("ADMIN"), userController.delete);
+router.delete("/:id", userController.delete);
 
 module.exports = router;

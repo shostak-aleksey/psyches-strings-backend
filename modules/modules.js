@@ -37,21 +37,27 @@ const Video = sequelize.define("video", {
   courseId: { type: DataTypes.INTEGER, allowNull: false },
 });
 
+const RefreshToken = sequelize.define("refreshToken", {
+  token: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+});
+
 User.hasOne(Basket);
 Basket.belongsTo(User);
-
 Basket.hasMany(BasketCourse);
 BasketCourse.belongsTo(Basket);
-
 Basket.hasMany(BasketVideo);
 BasketVideo.belongsTo(Basket);
-
 Course.hasMany(Video);
 Video.belongsTo(Course);
-
 Course.hasMany(BasketCourse);
 BasketCourse.belongsTo(Course);
-
 Video.hasMany(BasketVideo);
 BasketVideo.belongsTo(Video);
 
@@ -62,4 +68,5 @@ module.exports = {
   BasketVideo,
   Course,
   Video,
+  RefreshToken,
 };
