@@ -1,26 +1,27 @@
-const sequelize = require("../src/db");
-const { DataTypes } = require("sequelize");
+const sequelize = require('../src/db');
+const { DataTypes } = require('sequelize');
 
-const User = sequelize.define("user", {
+const User = sequelize.define('user', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   email: { type: DataTypes.STRING, unique: true },
   password: { type: DataTypes.STRING },
-  role: { type: DataTypes.STRING, defaultValue: "USER" },
+  role: { type: DataTypes.STRING, defaultValue: 'USER' },
+  googleId: { type: DataTypes.STRING, unique: true }, // Добавьте это поле
 });
 
-const Basket = sequelize.define("basket", {
+const Basket = sequelize.define('basket', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 });
 
-const BasketCourse = sequelize.define("basket_course", {
+const BasketCourse = sequelize.define('basket_course', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 });
 
-const BasketVideo = sequelize.define("basket_video", {
+const BasketVideo = sequelize.define('basket_video', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 });
 
-const Course = sequelize.define("course", {
+const Course = sequelize.define('course', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, unique: true, allowNull: false },
   price: { type: DataTypes.INTEGER, allowNull: false },
@@ -28,7 +29,7 @@ const Course = sequelize.define("course", {
   image: { type: DataTypes.STRING, allowNull: false },
 });
 
-const Video = sequelize.define("video", {
+const Video = sequelize.define('video', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.TEXT, allowNull: false },
@@ -37,7 +38,7 @@ const Video = sequelize.define("video", {
   courseId: { type: DataTypes.INTEGER, allowNull: false },
 });
 
-const RefreshToken = sequelize.define("refreshToken", {
+const RefreshToken = sequelize.define('refreshToken', {
   token: {
     type: DataTypes.STRING,
     allowNull: false,

@@ -1,72 +1,9 @@
-const Router = require("express");
+const Router = require('express');
 const router = new Router();
-const userController = require("../controllers/userController");
-const checkRole = require("../middleware/checkRoleMiddleware");
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     User:
- *       type: object
- *       required:
- *         - email
- *         - password
- *       properties:
- *         id:
- *           type: integer
- *           description: The auto-generated id of the user
- *         email:
- *           type: string
- *           description: The email of the user
- *         password:
- *           type: string
- *           description: The password of the user
- *         role:
- *           type: string
- *           description: The role of the user
- *       example:
- *         id: 1
- *         email: "user@example.com"
- *         password: "password123"
- *         role: "USER"
- */
-
-/**
- * @swagger
- * tags:
- *   name: Users
- *   description: The users managing API
- */
-
-/**
- * @swagger
- * /user/registration:
- *   post:
- *     summary: Register a new user
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/User'
- *     responses:
- *       200:
- *         description: The user was successfully registered
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
- *                 refreshToken:
- *                   type: string
- *       400:
- *         description: Bad request
- */
-router.post("/registration", userController.registration);
+const userController = require('../controllers/userController');
+const passport = require('passport');
+require('../passport-setup'); // Ensure this path is correct
+const checkRole = require('../middleware/checkRoleMiddleware');
 
 /**
  * @swagger
@@ -100,7 +37,7 @@ router.post("/registration", userController.registration);
  *       400:
  *         description: Bad request
  */
-router.post("/login", userController.login);
+router.post('/login', userController.login);
 
 /**
  * @swagger
@@ -132,7 +69,7 @@ router.post("/login", userController.login);
  *       400:
  *         description: Bad request
  */
-router.post("/refresh", userController.refresh);
+router.post('/refresh', userController.refresh);
 
 /**
  * @swagger
@@ -155,7 +92,7 @@ router.post("/refresh", userController.refresh);
  *       400:
  *         description: Bad request
  */
-router.post("/logout", userController.logout);
+router.post('/logout', userController.logout);
 
 /**
  * @swagger
@@ -180,7 +117,7 @@ router.post("/logout", userController.logout);
  *       404:
  *         description: User not found
  */
-router.get("/:id", checkRole("ADMIN"), userController.getOne);
+router.get('/:id', checkRole('ADMIN'), userController.getOne);
 
 /**
  * @swagger
@@ -198,7 +135,7 @@ router.get("/:id", checkRole("ADMIN"), userController.getOne);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.get("/", userController.getAll);
+router.get('/', userController.getAll);
 
 /**
  * @swagger
@@ -234,7 +171,7 @@ router.get("/", userController.getAll);
  *       404:
  *         description: User not found
  */
-router.put("/:id", userController.update);
+router.put('/:id', userController.update);
 
 /**
  * @swagger
@@ -255,6 +192,47 @@ router.put("/:id", userController.update);
  *       404:
  *         description: User not found
  */
-router.delete("/:id", userController.delete);
+router.delete('/:id', checkRole('ADMIN'), userController.delete);
 
+/**
+ * @swagger
+ * /user/auth/google:
+ *   get:
+ *     summary: Start Google authentication
+ *     tags: [Users]
+ *     responses:
+ *       302:
+ *         description: Redirect to Google for authentication
+ */
+router.get(
+  '/auth/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+  }),
+);
+
+/**
+ * @swagger
+ * /user/auth/google/callback:
+ *   get:
+ *     summary: Google authentication callback
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Successfully authenticated with Google
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ */
+router.get(
+  '/auth/google/callback',
+  passport.authenticate('google'),
+  userController.googleCallback,
+);
 module.exports = router;
