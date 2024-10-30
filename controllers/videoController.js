@@ -1,21 +1,21 @@
-const uuid = require("uuid");
-const path = require("path");
-const { Video } = require("../modules/modules");
-const ApiError = require("../error/ApiError");
+const uuid = require('uuid');
+const path = require('path');
+const { Video } = require('../models/modules');
+const ApiError = require('../error/ApiError');
 
 class VideoController {
   async create(req, res, next) {
     try {
       let { title, description, price, courseId } = req.body;
-      console.log("Request files:", req.files); // Для отладки
+      console.log('Request files:', req.files); // Для отладки
       const { video } = req.files;
 
       if (!video) {
-        return next(ApiError.badRequest("Video file is missing"));
+        return next(ApiError.badRequest('Video file is missing'));
       }
 
-      let videoFilename = uuid.v4() + ".mp4";
-      video.mv(path.resolve(__dirname, "..", "static", videoFilename));
+      let videoFilename = uuid.v4() + '.mp4';
+      video.mv(path.resolve(__dirname, '..', 'static', videoFilename));
 
       const videoEntry = await Video.create({
         title,
@@ -54,17 +54,17 @@ class VideoController {
     try {
       const { id } = req.params;
       let { title, description, price, courseId } = req.body;
-      console.log("Request files:", req.files); // Для отладки
+      console.log('Request files:', req.files); // Для отладки
       const { video } = req.files;
 
       const videoEntry = await Video.findOne({ where: { id } });
       if (!videoEntry) {
-        return next(ApiError.notFound("Видео не найдено"));
+        return next(ApiError.notFound('Видео не найдено'));
       }
 
       if (video) {
-        let videoFilename = uuid.v4() + ".mp4";
-        video.mv(path.resolve(__dirname, "..", "static", videoFilename));
+        let videoFilename = uuid.v4() + '.mp4';
+        video.mv(path.resolve(__dirname, '..', 'static', videoFilename));
         videoEntry.url = videoFilename;
       }
 
@@ -86,10 +86,10 @@ class VideoController {
       const { id } = req.params;
       const video = await Video.findOne({ where: { id } });
       if (!video) {
-        return next(ApiError.notFound("Видео не найдено"));
+        return next(ApiError.notFound('Видео не найдено'));
       }
       await video.destroy();
-      return res.json({ message: "Видео удалено" });
+      return res.json({ message: 'Видео удалено' });
     } catch (err) {
       next(ApiError.badRequest(err.message));
     }

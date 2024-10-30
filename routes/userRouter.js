@@ -9,7 +9,7 @@ const checkRole = require('../middleware/checkRoleMiddleware');
  * @swagger
  * /user/login:
  *   post:
- *     summary: Login a user
+ *     summary: User login
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -24,7 +24,7 @@ const checkRole = require('../middleware/checkRoleMiddleware');
  *                 type: string
  *     responses:
  *       200:
- *         description: The user was successfully logged in
+ *         description: Successful login
  *         content:
  *           application/json:
  *             schema:
@@ -196,43 +196,23 @@ router.delete('/:id', checkRole('ADMIN'), userController.delete);
 
 /**
  * @swagger
- * /user/auth/google:
+ * /user/check:
  *   get:
- *     summary: Start Google authentication
- *     tags: [Users]
- *     responses:
- *       302:
- *         description: Redirect to Google for authentication
- */
-router.get(
-  '/auth/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
-  }),
-);
-
-/**
- * @swagger
- * /user/auth/google/callback:
- *   get:
- *     summary: Google authentication callback
+ *     summary: Check token validity
  *     tags: [Users]
  *     responses:
  *       200:
- *         description: Successfully authenticated with Google
+ *         description: Token is valid
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 accessToken:
+ *                 token:
  *                   type: string
- *                 refreshToken:
- *                   type: string
+ *       401:
+ *         description: Unauthorized
  */
-router.get(
-  '/auth/google/callback',
-  passport.authenticate('google'),
-  userController.googleCallback,
-);
+router.get('/check', userController.check);
+
 module.exports = router;

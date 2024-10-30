@@ -1,7 +1,7 @@
-const uuid = require("uuid");
-const path = require("path");
-const { Course, Video } = require("../modules/modules");
-const ApiError = require("../error/ApiError");
+const uuid = require('uuid');
+const path = require('path');
+const { Course, Video } = require('../models/modules');
+const ApiError = require('../error/ApiError');
 
 class CourseController {
   async create(req, res, next) {
@@ -9,8 +9,8 @@ class CourseController {
       let { name, price, description } = req.body;
       const { image } = req.files;
 
-      let imageFilename = uuid.v4() + ".jpg";
-      image.mv(path.resolve(__dirname, "..", "static", imageFilename));
+      let imageFilename = uuid.v4() + '.jpg';
+      image.mv(path.resolve(__dirname, '..', 'static', imageFilename));
 
       const course = await Course.create({
         name,
@@ -55,12 +55,12 @@ class CourseController {
 
       const course = await Course.findOne({ where: { id } });
       if (!course) {
-        return next(ApiError.notFound("Курс не найден"));
+        return next(ApiError.notFound('Курс не найден'));
       }
 
       if (image) {
-        let imageFilename = uuid.v4() + ".jpg";
-        image.mv(path.resolve(__dirname, "..", "static", imageFilename));
+        let imageFilename = uuid.v4() + '.jpg';
+        image.mv(path.resolve(__dirname, '..', 'static', imageFilename));
         course.image = imageFilename;
       }
 
@@ -81,10 +81,10 @@ class CourseController {
       const { id } = req.params;
       const course = await Course.findOne({ where: { id } });
       if (!course) {
-        return next(ApiError.notFound("Курс не найден"));
+        return next(ApiError.notFound('Курс не найден'));
       }
       await course.destroy();
-      return res.json({ message: "Курс удален" });
+      return res.json({ message: 'Курс удален' });
     } catch (err) {
       next(ApiError.badRequest(err.message));
     }

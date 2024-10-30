@@ -1,43 +1,70 @@
 const ApiError = require('../error/ApiError');
 const jwt = require('jsonwebtoken');
-const { User, RefreshToken } = require('../modules/modules');
-const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
+const bcrypt = require('bcrypt');
+const User = require('../models/User');
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require('../controllers/authController');
+const RefreshToken = require('../models/RefreshToken');
 
 class UserController {
-  async googleCallback(req, res, next) {
+  async registration(req, res, next) {
+    const { email, password, role } = req.body;
+    if (!email || !password) {
+      return next(ApiError.badRequest('Не указан email или пароль'));
+    }
     try {
-      const accessToken = generateAccessToken(
-        req.user.id,
-        req.user.email,
-        req.user.role,
-      );
-      const refreshToken = generateRefreshToken(
-        req.user.id,
-        req.user.email,
-        req.user.role,
-      );
+      const candidate = await User.findOne({ email });
+      if (candidate) {
+        return next(
+          ApiError.badRequest('Пользователь с таким email уже существует'),
+        );
+      }
+      const hashPassword = await bcrypt.hash(password, 5);
+      const user = await User.create({ email, role, password: hashPassword });
+
+      // Use the correct function calls
+      const accessToken = generateAccessToken(user);
+      const refreshToken = await generateRefreshToken(user);
+
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
       });
-      return res.json({ accessToken, refreshToken });
+      return res.json({ accessToken });
     } catch (error) {
-      return next(ApiError.internal('Ошибка при обработке Google OAuth'));
+      console.error('Registration error:', error);
+      if (error.code === 11000) {
+        return next(
+          ApiError.badRequest('Пользователь с таким email уже существует'),
+        );
+      }
+      return next(ApiError.internal('Ошибка сервера'));
     }
   }
+
   async login(req, res, next) {
     const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
+    console.log(`Attempting login for email: ${email}`);
+
+    const user = await User.findOne({ email });
+
     if (!user) {
+      console.log('User not found');
       return next(ApiError.internal('Пользователь не найден'));
     }
+
+    console.log(`Stored hashed password: ${user.password}`);
     let comparePassword = bcrypt.compareSync(password, user.password);
     if (!comparePassword) {
+      console.log('Password comparison failed');
       return next(ApiError.internal('Указанный пароль неверен'));
     }
-    const accessToken = generateAccessToken(user.id, user.email, user.role);
-    const refreshToken = generateRefreshToken(user.id, user.email, user.role);
-    await RefreshToken.create({ token: refreshToken, userId: user.id });
+
+    // Use the correct function calls
+    const accessToken = generateAccessToken(user);
+    const refreshToken = await generateRefreshToken(user);
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -135,6 +162,15 @@ class UserController {
     } catch (e) {
       return next(ApiError.internal('Ошибка при получении пользователя'));
     }
+  }
+
+  async check(req, res) {
+    const token = generateAccessToken(
+      req.user.id,
+      req.user.email,
+      req.user.role,
+    );
+    return res.json({ token });
   }
 
   async update(req, res, next) {
