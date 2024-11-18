@@ -24,7 +24,6 @@ class UserController {
       const hashPassword = await bcrypt.hash(password, 5);
       const user = await User.create({ email, role, password: hashPassword });
 
-      // Use the correct function calls
       const accessToken = generateAccessToken(user);
       const refreshToken = await generateRefreshToken(user);
 
@@ -47,22 +46,18 @@ class UserController {
   async login(req, res, next) {
     const { email, password } = req.body;
     console.log(`Attempting login for email: ${email}`);
-
     const user = await User.findOne({ email });
-
     if (!user) {
       console.log('User not found');
       return next(ApiError.internal('Пользователь не найден'));
     }
-
     console.log(`Stored hashed password: ${user.password}`);
-    let comparePassword = bcrypt.compareSync(password, user.password);
+    const comparePassword = bcrypt.compareSync(password, user.password);
     if (!comparePassword) {
       console.log('Password comparison failed');
       return next(ApiError.internal('Указанный пароль неверен'));
     }
 
-    // Use the correct function calls
     const accessToken = generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user);
 
@@ -70,7 +65,6 @@ class UserController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
     });
-
     return res.json({ accessToken });
   }
 
@@ -85,32 +79,23 @@ class UserController {
     } catch (e) {
       return next(ApiError.unauthorized('Неверный refresh token'));
     }
-    const tokenInDb = await RefreshToken.findOne({
-      where: { token: refreshToken },
-    });
+    const tokenInDb = await RefreshToken.findOne({ token: refreshToken });
     if (!tokenInDb) {
       return next(
         ApiError.unauthorized('Refresh token не найден в базе данных'),
       );
     }
-    const accessToken = generateAccessToken(
-      userData.id,
-      userData.email,
-      userData.role,
-    );
-    const newRefreshToken = generateRefreshToken(
-      userData.id,
-      userData.email,
-      userData.role,
-    );
+
+    const accessToken = generateAccessToken(userData);
+    const newRefreshToken = generateRefreshToken(userData);
+
     await RefreshToken.create({ token: newRefreshToken, userId: userData.id });
-    await tokenInDb.destroy();
+    await tokenInDb.remove();
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
     });
-
     return res.json({ accessToken });
   }
 
@@ -119,30 +104,22 @@ class UserController {
     if (!refreshToken) {
       return next(ApiError.badRequest('Refresh token отсутствует'));
     }
-    const tokenInDb = await RefreshToken.findOne({
-      where: { token: refreshToken },
-    });
+    const tokenInDb = await RefreshToken.findOne({ token: refreshToken });
     if (tokenInDb) {
-      await tokenInDb.destroy();
+      await tokenInDb.remove();
     }
-
     res.clearCookie('refreshToken');
-
     return res.json({ message: 'Вы успешно вышли из системы' });
   }
 
   async check(req, res) {
-    const token = generateAccessToken(
-      req.user.id,
-      req.user.email,
-      req.user.role,
-    );
+    const token = generateAccessToken(req.user);
     return res.json({ token });
   }
 
   async getAll(req, res, next) {
     try {
-      const users = await User.findAll();
+      const users = await User.find();
       return res.json(users);
     } catch (e) {
       return next(
@@ -154,7 +131,7 @@ class UserController {
   async getOne(req, res, next) {
     const { id } = req.params;
     try {
-      const user = await User.findOne({ where: { id } });
+      const user = await User.findById(id);
       if (!user) {
         return next(ApiError.notFound('Пользователь не найден'));
       }
@@ -164,20 +141,11 @@ class UserController {
     }
   }
 
-  async check(req, res) {
-    const token = generateAccessToken(
-      req.user.id,
-      req.user.email,
-      req.user.role,
-    );
-    return res.json({ token });
-  }
-
   async update(req, res, next) {
     const { id } = req.params;
     const { email, role } = req.body;
     try {
-      const user = await User.findOne({ where: { id } });
+      const user = await User.findById(id);
       if (!user) {
         return next(ApiError.notFound('Пользователь не найден'));
       }
@@ -193,11 +161,11 @@ class UserController {
   async delete(req, res, next) {
     const { id } = req.params;
     try {
-      const user = await User.findOne({ where: { id } });
+      const user = await User.findById(id);
       if (!user) {
         return next(ApiError.notFound('Пользователь не найден'));
       }
-      await user.destroy();
+      await user.remove();
       return res.json({ message: 'Пользователь удален' });
     } catch (e) {
       return next(ApiError.internal('Ошибка при удалении пользователя'));
