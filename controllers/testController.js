@@ -1,6 +1,6 @@
 const Test = require('../models/Test');
 const Question = require('../models/Question');
-const UserResponse = require('../models/userResponse');
+const UserResponse = require('../models/UserResponse');
 const Result = require('../models/Result');
 const User = require('../models/User');
 const PersonalityType = require('../models/PersonalityType');
